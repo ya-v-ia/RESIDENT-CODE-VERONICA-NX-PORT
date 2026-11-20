@@ -19,4 +19,4 @@ while [ $# -gt 0 ]; do
 done
 cmake -S "$root" -B "$dir" -G Ninja -DCMAKE_TOOLCHAIN_FILE="$dkp/libounce/cmake/Switch2.cmake" \
       -DCMAKE_BUILD_TYPE="${BUILD_TYPE:-RelWithDebInfo}" -DRECVX_64=ON -DRECVX_PIE=ON "${cargs[@]}"
-ninja -C "$dir" "${nargs[@]:-recvx}"
+ninja -C "$dir" "${nargs[@]:-recvx_nro}"
