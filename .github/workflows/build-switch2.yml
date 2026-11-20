@@ -30,6 +30,7 @@ jobs:
           chmod +x scripts/build-switch2.sh
           scripts/build-switch2.sh
           ls -lh build-switch2/pc/recvx.nro
+          grep -aob "OUN0" build-switch2/pc/recvx.nro
 
       - name: Upload Switch 2 NRO artifact
         uses: actions/upload-artifact@v4
