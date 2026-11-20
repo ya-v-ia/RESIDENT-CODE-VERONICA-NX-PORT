@@ -32,7 +32,12 @@ if(NINTENDO_SWITCH)
     pkg_check_modules(NXSDL2IMG REQUIRED IMPORTED_TARGET SDL2_image)
     add_library(sdl3compat STATIC switch/sdl3compat.c switch/nx_fatal.c switch/fcast_log.c switch/nx_gyro.c)
     target_include_directories(sdl3compat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/switch/include)
-    target_link_libraries(sdl3compat PUBLIC PkgConfig::NXSDL2IMG PkgConfig::NXSDL2 EGL glapi drm_nouveau)
+    if(NINTENDO_SWITCH2)
+        # Switch 2 (ounce-devkit): OunceVK provides EGL/OpenGL directly without Mesa glapi/drm_nouveau
+        target_link_libraries(sdl3compat PUBLIC PkgConfig::NXSDL2IMG PkgConfig::NXSDL2 EGL)
+    else()
+        target_link_libraries(sdl3compat PUBLIC PkgConfig::NXSDL2IMG PkgConfig::NXSDL2 EGL glapi drm_nouveau)
+    endif()
     add_library(SDL3::SDL3 ALIAS sdl3compat)
 elseif(RECVX_VENDORED_SDL)
     include(FetchContent)
@@ -241,7 +246,7 @@ if(WIN32)
     endif()
 endif()
 if(NINTENDO_SWITCH)
-    # libnx's linker script with the read-only data moved into the writable data segment (after the
+    # libnx/libounce's linker script with the read-only data moved into the writable data segment (after the
     # RELRO part libnx protects at start): the decomp writes into string literals, as on the PS2.
     # __executable_start: the image's first byte, PS2 address 0x30000000 (pc_ptr.h).
     file(READ ${NX_ROOT}/switch.ld NX_LD)
@@ -260,7 +265,7 @@ if(NINTENDO_SWITCH)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/recvx.ld "${NX_LD}")
     # switch.specs names its own script (-T): the same specs without it, and ours on the command line
     file(READ ${NX_ROOT}/switch.specs NX_SPECS)
-    string(REPLACE "-T %:getenv(DEVKITPRO /libnx/switch.ld) " "" NX_SPECS "${NX_SPECS}")
+    string(REGEX REPLACE "-T %:getenv\\(DEVKITPRO /lib(nx|ounce)/switch\\.ld\\) " "" NX_SPECS "${NX_SPECS}")
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/recvx.specs "${NX_SPECS}")
     set(nx_ld ${CMAKE_CURRENT_BINARY_DIR}/recvx.ld)
     set(nx_specs ${CMAKE_CURRENT_BINARY_DIR}/recvx.specs)

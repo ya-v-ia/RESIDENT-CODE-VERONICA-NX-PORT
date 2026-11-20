@@ -1,0 +1,37 @@
+name: Build Switch 2 NRO
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-switch2:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/devkitpro/devkita64:20260219
+    steps:
+      - name: Install host tools and ounce-devkit
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends curl ca-certificates git ninja-build python3
+          curl -fsSL https://raw.githubusercontent.com/ouncebrew/ounce-devkit/main/install.sh | sh
+          dkp-pacman -S --needed --noconfirm switch-sdl2 switch-sdl2_image switch-glad
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Switch 2 NRO
+        run: |
+          chmod +x scripts/build-switch2.sh
+          scripts/build-switch2.sh
+
+      - name: Upload Switch 2 NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: recvx-switch2-nro
+          path: build-switch2/pc/recvx.nro
