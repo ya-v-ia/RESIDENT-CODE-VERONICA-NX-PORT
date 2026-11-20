@@ -32,9 +32,29 @@ jobs:
           ls -lh build-switch2/pc/recvx.nro
           grep -aob "OUN0" build-switch2/pc/recvx.nro
 
+      - name: Report linked EGL and libnx archives
+        if: always()
+        run: |
+          echo "== archives in the link map =="
+          grep -aoE "/opt/devkitpro/[A-Za-z0-9_./+-]*(libEGL|libglapi|libdrm_nouveau|libnx|libSDL2|libGLESv2|libvulkan)[A-Za-z0-9_.+-]*\.(a|so)" build-switch2/pc/recvx.map | sort -u || true
+          echo "== switch2 portlibs: EGL / GL / Vulkan =="
+          ls -l /opt/devkitpro/portlibs/switch2/lib | grep -iE "egl|gl|vulkan" || true
+          echo "== switch1 portlibs: EGL / GL =="
+          ls -l /opt/devkitpro/portlibs/switch/lib | grep -iE "egl|glapi|nouveau" || true
+          echo "== sdl2.pc =="
+          cat /opt/devkitpro/portlibs/switch/lib/pkgconfig/sdl2.pc || true
+
       - name: Upload Switch 2 NRO artifact
         uses: actions/upload-artifact@v4
         with:
           name: recvx-switch2-nro
           path: build-switch2/pc/recvx.nro
           if-no-files-found: error
+
+      - name: Upload link map
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recvx-switch2-map
+          path: build-switch2/pc/recvx.map
+          if-no-files-found: warn
